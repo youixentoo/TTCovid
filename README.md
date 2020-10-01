@@ -6,6 +6,7 @@ Assignments for Data Analytics.
 * matplotlib
 * numpy
 * scipy
+* update-check
 
 # Data:
 Data from: <br>
