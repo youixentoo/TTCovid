@@ -4,7 +4,13 @@ Created on Wed Sep 30 11:47:34 2020
 
 @author: Thijs Weenink
 
-Growth rate per country
+Plots the total_cases or total_deaths (though not tested) of a single country, multiple countries
+or all countries. With the sigmoid fitted line added.
+To also plot the growth rates as a barplot, enable it in multiple_countries(). This function 
+is not relevant for single_country(). 
+
+There is currently no check for a 'second wave', so if a country has one, the fitted line/growth rate
+for that country isn't 100% reliable.
 """
 import matplotlib.pyplot as plt
 
@@ -21,14 +27,20 @@ def main():
     covid_data = get_data("owid-covid-data.json")
     start_date = get_start_date(covid_data)
 
+    # Select a country based on country code, only used for single country plotting,
+    # leave as an empty string to plot a random country from the list.
     country_code = "ESP"
     comparison = "total_cases"
 
     countries_list = list(covid_data.keys())
-    # countries_list.remove("AIA")
-    # countries_list.remove("HKG")
+    
+    # This country had a growth rate of around 40, making the entire barplot unreadable.
+    # countries_list.remove("AIA") # = North America
+    # This country had the second highest growth rate.
+    # countries_list.remove("HKG") # = Hong Kong
 
-
+    
+    # Check if the selected country code exists, otherwise plot a random one.
     if country_code in countries_list:
         country_data = covid_data.get(country_code)
     else:
@@ -76,21 +88,25 @@ def single_country(country_data, comparison, start_date):
 
     compared = (compared / population)*10000
 
+    # Same format as the one used for multiple countries
     data = {full_name:(days, compared)}
 
     plot_data(data, comparison, 8, 6)
 
-    print(len(days), len(compared))
     print(full_name, population)
 
 
 """
 Main function calls for a multiple or all countries
+
+Add 'True' to the plot_data() call to plot growth rates per country as a barplot.
 """
 def multiple_countries(covid_data, comparison, start_date, selected_countries=None, all_countries=False):
     # print(selected_countries)
 
+    # Dictionary to store the data in per country, used to make the plot.
     data_points = {}
+    # For-loop to get all the data from the selected data or all countries if selected.
     for country in selected_countries:
         country_data = covid_data.get(country)
 
@@ -155,7 +171,7 @@ def sigmoid(x, L, x0, k, b):
 Plots the data
 """
 def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_rate=False):
-
+    
     comparison_e = comparison.replace("_", " ")
 
     fig, ax = plt.subplots(figsize=(f_x,f_y)) # *72 = pixels
@@ -169,11 +185,11 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
     else:
         plot_title = "{}{} in {}".format(comparison_e[0].upper(), comparison_e[1::], ", ".join(countries))
 
-    # Selects a color
+    # Selects a colormap
     cm = plt.get_cmap('tab20')
     ax.set_prop_cycle('color', [cm(1.*i/num_colors) for i in range(num_colors)])
 
-    # Extra
+    # Extra, to store the growth rates per country
     growth_rate_per_country = {}
 
     # Plots all the data and the fitting lines
@@ -182,7 +198,8 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
         p0 = [max(compared), median(days),1,min(compared)]
 
         popt, pcov = curve_fit(sigmoid, days, compared, p0, maxfev=max_fev)
-
+        
+        # Saves the growth rate per country to the dictionary
         growth_rate_per_country[country] = popt[2]
         # print("L: {}, x0: {}, k: {}, b: {}".format(*popt))
 
@@ -205,6 +222,7 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
 
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, ncol=columns)
 
+    # Determines the name of the folder to store the plots in.
     if all_countries:
         dir_name = "All_countries"
     else:
@@ -237,6 +255,7 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
         plt.xlabel("Country code")
         plt.ylabel("Growth rate")
 
+        # Coloring of the bars in the bar plot.
         colors = iter(plt.cm.viridis(linspace(0,1,num_colors)))
         for i, bar in enumerate(bar_plot):
             bar.set_color(next(colors))
