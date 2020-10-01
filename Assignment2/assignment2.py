@@ -35,7 +35,7 @@ def main():
     countries_list = list(covid_data.keys())
     
     # This country had a growth rate of around 40, making the entire barplot unreadable.
-    # countries_list.remove("AIA") # = North America
+    # countries_list.remove("AIA") # = Anguilla
     # This country had the second highest growth rate.
     # countries_list.remove("HKG") # = Hong Kong
 
