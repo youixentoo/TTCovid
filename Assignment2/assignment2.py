@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 from json import load
 from random import randint
-from os import mkdir
+from os import mkdir, path
 from scipy.optimize import curve_fit
 from numpy import median, exp, asarray, linspace
 
@@ -24,7 +24,10 @@ from datetime import datetime
 
 def main():
     # https://github.com/owid/covid-19-data/tree/master/public/data
-    covid_data = get_data("owid-covid-data.json")
+    script_cwd = path.dirname(__file__)
+    filepath = path.abspath(path.join(script_cwd, "..", "owid-covid-data.json"))
+    
+    covid_data = get_data(filepath)
     start_date = get_start_date(covid_data)
 
     # Select a country based on country code, only used for single country plotting,

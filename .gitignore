@@ -7,6 +7,7 @@ Assignment2/*/*
 */*.json
 */*.png
 */*.txt
+*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

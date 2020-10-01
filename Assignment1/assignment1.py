@@ -11,12 +11,15 @@ import matplotlib.pyplot as plt
 
 from json import load
 from random import randint
-from os import mkdir
+from os import mkdir, path
 
 
 def main():
     # https://github.com/owid/covid-19-data/tree/master/public/data
-    covid_data = get_data("owid-covid-data.json")
+    script_cwd = path.dirname(__file__)
+    filepath = path.abspath(path.join(script_cwd, "..", "owid-covid-data.json"))
+    
+    covid_data = get_data(filepath)
     
     countries_list = list(covid_data.keys())
     # print(countries_list)
