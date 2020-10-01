@@ -8,5 +8,7 @@ Assignments for Data Analytics.
 * scipy
 
 # Data:
+Data from: <br>
 https://github.com/owid/covid-19-data/tree/master/public/data <br>
-Pick the .json file and put in in the same file as the scripts.
+<br>
+Run 'update_owid_json.py' to get the latest version of the data.
