@@ -32,7 +32,7 @@ def main():
 
     # Select a country based on country code, only used for single country plotting,
     # leave as an empty string to plot a random country from the list.
-    country_code = "ESP"
+    country_code = "" #"GIB" #"EST"
     comparison = "total_cases"
 
     countries_list = list(covid_data.keys())
@@ -49,15 +49,21 @@ def main():
     else:
         country_index = randint(0, len(countries_list)-1)
         country_data = covid_data.get(countries_list[country_index])
+        print(countries_list[country_index])
 
+    
+    name = country_data.get("location")
+    
 
     # single_country(country_data, comparison, start_date)
 
-    selected_countries = ["AFG", "HTI", "CHN", "SDN", "NLD"]
+    # selected_countries = ["AFG", "HTI", "CHN", "SDN", "NLD"]
 
-    # selected_countries = countries_list # if you want to do all countries.
-    # Not recommended. Remember to also add ', True' to the function call.
-    multiple_countries(covid_data, comparison, start_date, selected_countries)
+    # # selected_countries = countries_list # if you want to do all countries.
+    # # Not recommended. Remember to also add ', True' to the function call.
+    # multiple_countries(covid_data, comparison, start_date, selected_countries)
+    
+    return country_data, name
 
 
 """
@@ -174,6 +180,7 @@ def sigmoid(x, L, x0, k, b):
 Plots the data
 """
 def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_rate=False):
+    found_sigmoid = True
     
     comparison_e = comparison.replace("_", " ")
 
@@ -181,7 +188,7 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
 
     countries = list(data.keys())
     num_colors = len(countries)*2
-    max_fev = 2500*num_colors
+    max_fev = 500
 
     if all_countries:
         plot_title = "{}{} in all countries".format(comparison_e[0].upper(), comparison_e[1::])
@@ -198,18 +205,22 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
     # Plots all the data and the fitting lines
     for country in countries:
         days, compared = data.get(country)
-        p0 = [max(compared), median(days),1,min(compared)]
-
-        popt, pcov = curve_fit(sigmoid, days, compared, p0, maxfev=max_fev)
-        
-        # Saves the growth rate per country to the dictionary
-        growth_rate_per_country[country] = popt[2]
-        # print("L: {}, x0: {}, k: {}, b: {}".format(*popt))
-
-        fitted = sigmoid(days, *popt)
+        try:
+            p0 = [max(compared), median(days),1,min(compared)]
+    
+            popt, pcov = curve_fit(sigmoid, days, compared, p0, maxfev=max_fev)
+            
+            # Saves the growth rate per country to the dictionary
+            growth_rate_per_country[country] = popt[2]
+            # print("L: {}, x0: {}, k: {}, b: {}".format(*popt))
+    
+            fitted = sigmoid(days, *popt)
+        except Exception as exc:
+            found_sigmoid = False
 
         plt.plot(days, compared, ".", label="{}_raw".format(country))
-        plt.plot(days, fitted, label="{}_fitted".format(country))
+        if found_sigmoid:
+            plt.plot(days, fitted, label="{}_fitted".format(country))
 
     # 'Opmaak'
     plt.xticks(rotation=90)
