@@ -5,6 +5,7 @@ Assignments for Data Analytics.
 # Requirements:
 * matplotlib
 * numpy
+* pandas
 * scipy
 * update-check
 
