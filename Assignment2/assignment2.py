@@ -6,8 +6,8 @@ Created on Wed Sep 30 11:47:34 2020
 
 Plots the total_cases or total_deaths (though not tested) of a single country, multiple countries
 or all countries. With the sigmoid fitted line added.
-To also plot the growth rates as a barplot, enable it in multiple_countries(). This function 
-is not relevant for single_country(). 
+To also plot the growth rates as a barplot, enable it in multiple_countries(). This function
+is not relevant for single_country().
 
 There is currently no check for a 'second wave', so if a country has one, the fitted line/growth rate
 for that country isn't 100% reliable.
@@ -26,7 +26,7 @@ def main():
     # https://github.com/owid/covid-19-data/tree/master/public/data
     script_cwd = path.dirname(__file__)
     filepath = path.abspath(path.join(script_cwd, "..", "owid-covid-data.json"))
-    
+
     covid_data = get_data(filepath)
     start_date = get_start_date(covid_data)
 
@@ -36,13 +36,13 @@ def main():
     comparison = "total_cases"
 
     countries_list = list(covid_data.keys())
-    
+
     # This country had a growth rate of around 40, making the entire barplot unreadable.
     # countries_list.remove("AIA") # = Anguilla
     # This country had the second highest growth rate.
     # countries_list.remove("HKG") # = Hong Kong
 
-    
+
     # Check if the selected country code exists, otherwise plot a random one.
     if country_code in countries_list:
         country_data = covid_data.get(country_code)
@@ -51,9 +51,9 @@ def main():
         country_data = covid_data.get(countries_list[country_index])
         print(countries_list[country_index])
 
-    
+
     name = country_data.get("location")
-    
+
 
     # single_country(country_data, comparison, start_date)
 
@@ -62,7 +62,7 @@ def main():
     # # selected_countries = countries_list # if you want to do all countries.
     # # Not recommended. Remember to also add ', True' to the function call.
     # multiple_countries(covid_data, comparison, start_date, selected_countries)
-    
+
     return country_data, name
 
 
@@ -180,8 +180,6 @@ def sigmoid(x, L, x0, k, b):
 Plots the data
 """
 def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_rate=False):
-    found_sigmoid = True
-    
     comparison_e = comparison.replace("_", " ")
 
     fig, ax = plt.subplots(figsize=(f_x,f_y)) # *72 = pixels
@@ -204,16 +202,18 @@ def plot_data(data, comparison, f_x=6, f_y=4, all_countries=False, plot_growth_r
 
     # Plots all the data and the fitting lines
     for country in countries:
+        found_sigmoid = True
+
         days, compared = data.get(country)
         try:
             p0 = [max(compared), median(days),1,min(compared)]
-    
+
             popt, pcov = curve_fit(sigmoid, days, compared, p0, maxfev=max_fev)
-            
+
             # Saves the growth rate per country to the dictionary
             growth_rate_per_country[country] = popt[2]
             # print("L: {}, x0: {}, k: {}, b: {}".format(*popt))
-    
+
             fitted = sigmoid(days, *popt)
         except Exception as exc:
             found_sigmoid = False
