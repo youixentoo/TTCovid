@@ -2,7 +2,9 @@
 """
 Created on Tue Oct 13 11:31:07 2020
 
-@author: gebruiker
+@author: Thijs Weenink
+
+Assignment3: Making scatterplots and regression lines.
 """
 import matplotlib.pyplot as plt
 
@@ -30,12 +32,15 @@ def main():
     
     df = create_dataframe(metadata, names, metadata_columns)
     
+    # Plot every item in 'metadata_columns' to the growth_rate and the death_rate
     for item in metadata_columns:
         plot_both(df, item, True)
-        
+      
+    # Calculates the correlation coefficient with Pandas
     # t = df.corr("human_development_index", "death_rate")
     # print(t)
     
+    # --- Old, uses the other plotting function ---
     # plot_data_sc(df, "human_development_index", "death_rate", "death_rate vs human_development_index")
     
     # for item in metadata_columns:
@@ -50,8 +55,7 @@ Create the dataframe
 def create_dataframe(metadata, names, columns):
     df = DataFrame(metadata)
     df.columns = columns
-    df.index = names
-    
+    df.index = names    
     return df
     
 """
@@ -62,9 +66,8 @@ def get_data(filename):
     return covid_data
 
 
-
 """
-Get the metadata
+Get the total_cases data, the total_deaths data and the metadata
 """
 def get_metadata(covid_data, metadata_columns, max_days):
     metadata = []
@@ -94,6 +97,7 @@ def get_metadata(covid_data, metadata_columns, max_days):
 def sigmoid(x, L, x0, k, b):
     y = L / (1 + exp(-k*(x-x0)))+b
     return (y)
+
 
 """
 Calculates the growth rate of the dataset.
@@ -125,9 +129,9 @@ def extract_data(value, max_days, datatype):
         if i >= max_days:
             break
         
-        tc = data.get(datatype)
-        if not tc == None:
-            cases.append(tc)
+        tcd = data.get(datatype)
+        if not tcd == None:
+            cases.append(tcd)
         else:
             # First value can also be 'None', sets it to 0.0
             try:
@@ -144,26 +148,27 @@ For plotting 1 scatterplot.
 def plot_data_sc(df, col1, col2, plot_title, location=None):
     without_nan_df = df.dropna()
     
+    # Generate the scatterplot via the DataFrame
     sc_plot = df.plot(col1, col2, label="Data points", kind="scatter")
     sc_plot.set_title(plot_title)
     
     # Linear regression from scipy. 'r_value' is the Correlation coefficient.
     slope, intercept, r_value, p_value, std_err = linregress(without_nan_df[col1], without_nan_df[col2])
-
     min_x, max_x = sc_plot.get_xlim()
-
     x = linspace(min_x, max_x)
+    
+    # Plot the regression line
     sc_plot.plot(x, intercept + slope*x, 'r', label='Regression line\nCor. Coef: {:.4}'.format(r_value))
     sc_plot.legend(bbox_to_anchor=(1.05, 1), loc=2)
     
+    # Save the plot if needed
     if location:
         try:
             mkdir(location)
         except Exception:
             pass
         
-        fig = plt.gcf() # Gets the current figure, needed to save them.
-        
+        fig = plt.gcf() # Gets the current figure, needed to save.
         fig.savefig("{}/{}.png".format(location, plot_title), bbox_inches="tight", dpi=100)
 
 
@@ -183,10 +188,12 @@ def plot_both(df, compare_col, save=False):
     ### Growth Rate ###
     ax1.scatter(df[compare_col], df["growth_rate"], color="tab:blue", label="Data points growth rate")
     
+    # Calculation of regression line and correlation coefficient
     slope, intercept, r_value, p_value, std_err = linregress(without_nan_df[compare_col], without_nan_df["growth_rate"])
     min_x, max_x = ax1.get_xlim()
     x = linspace(min_x, max_x)
     
+    # Plotting
     ax1.plot(x, intercept + slope*x, color="tab:orange", label='GR Regression line\nCor. Coef: {:.4}, P-value: {:.4}'.format(r_value, p_value))
     ax1.legend(bbox_to_anchor=(1.05, 1), loc=2)
     ax1.set(xlabel=compare_col, ylabel="growth_rate")
@@ -194,14 +201,17 @@ def plot_both(df, compare_col, save=False):
     ### Death Rate ###
     ax2.scatter(df[compare_col], df["death_rate"], color="tab:gray", label="Data points death rate")
     
+    # Calculation of regression line and correlation coefficient
     slope, intercept, r_value, p_value, std_err = linregress(without_nan_df[compare_col], without_nan_df["death_rate"])
     min_x, max_x = ax1.get_xlim()
     x = linspace(min_x, max_x)
     
+    # Plotting
     ax2.plot(x, intercept + slope*x, color="tab:red", label='DR Regression line\nCor. Coef: {:.4}, P-value: {:.4}'.format(r_value, p_value))
     ax2.legend(bbox_to_anchor=(1.05, 1), loc=2)
     ax2.set(xlabel=compare_col, ylabel="death_rate")
     
+    # Save the plot if needed
     if save:
         save_location = "GRDR"
         try:

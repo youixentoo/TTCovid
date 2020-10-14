@@ -2,7 +2,9 @@
 """
 Created on Wed Oct 14 12:39:52 2020
 
-@author: gebruiker
+@author: Thijs Weenink
+
+Assignment4: Clustering of scatterplot data
 """
 import matplotlib.pyplot as plt
 
@@ -11,11 +13,13 @@ from os import mkdir, path
 from scipy.optimize import curve_fit
 from scipy.stats import linregress
 from scipy.cluster import hierarchy
-from numpy import median, exp, linspace
+from numpy import median, exp
 from pandas import DataFrame
 
 
-
+"""
+Main function
+"""
 def main():
     max_days = 150
     script_cwd = path.dirname(__file__)
@@ -32,7 +36,11 @@ def main():
     
     df = create_dataframe(metadata, names, metadata_columns)
     
-    dn = cluster(df, "population_density", "growth_rate", True)
+    # Selecting which 2 columns to cluster.
+    # Change 'False' to 'True' if the plot needs to be saved.
+    # A list of countries to be ignored can de added.
+    dn = cluster(df, "population_density", "growth_rate", False)
+
 
 """ 
 Create the dataframe
@@ -41,9 +49,9 @@ def create_dataframe(metadata, names, columns):
     df = DataFrame(metadata)
     df.columns = columns
     df.index = names
-    
     return df
     
+
 """
 Loads the data from the json file
 """
@@ -52,9 +60,8 @@ def get_data(filename):
     return covid_data
 
 
-
 """
-Get the metadata
+Get the total_cases data, the total_deaths data and the metadata
 """
 def get_metadata(covid_data, metadata_columns, max_days):
     metadata = []
@@ -84,6 +91,7 @@ def get_metadata(covid_data, metadata_columns, max_days):
 def sigmoid(x, L, x0, k, b):
     y = L / (1 + exp(-k*(x-x0)))+b
     return (y)
+
 
 """
 Calculates the growth rate of the dataset.
@@ -115,9 +123,9 @@ def extract_data(value, max_days, datatype):
         if i >= max_days:
             break
         
-        tc = data.get(datatype)
-        if not tc == None:
-            cases.append(tc)
+        tcd = data.get(datatype)
+        if not tcd == None:
+            cases.append(tcd)
         else:
             # First value can also be 'None', sets it to 0.0
             try:
@@ -127,6 +135,7 @@ def extract_data(value, max_days, datatype):
     
     return cases
 
+
 """
 Clustering of the data, based on which columns are specified.
 Allows for removal of datapoints in the form of a list, specific by the country name.
@@ -135,21 +144,26 @@ Allows for removal of datapoints in the form of a list, specific by the country 
 def cluster(df, col1, col2, save=False, remove=None):
     df = df.fillna(0.0)
     
+    # Removes specified countries from the dataframe.
     if remove:
         df = df.drop(remove)
     
+    # Selection of data
     x = df[col1]
     y = df[col2]
     xy = df[[col1, col2]]
     
     plot_title = "Scatterplot and Dendogram for {} vs {}".format(col1, col2)
     
+    # Large plot size to make it somewhat readable.
     fig, (ax1, ax2) = plt.subplots(1,2, figsize=(36,24), gridspec_kw={'width_ratios': [3, 1]}) # Width, Height
     
+    # Making of the dendrogram and calculation of the correlation coefficient.
     link = hierarchy.linkage(xy, "ward")
     dn = hierarchy.dendrogram(link, labels=xy.index, orientation="left")
     slope, intercept, r_value, p_value, std_err = linregress(x,y)
     
+    # Plotting
     fig.suptitle(plot_title)
     
     ax2.set(xlabel="Location", ylabel="distances", title="Dendrogram")
@@ -158,8 +172,8 @@ def cluster(df, col1, col2, save=False, remove=None):
     ax1.set(xlabel=col1, ylabel=col2, title="Scatter plot, Corr: {:.4}, p-value: {:.4}".format(r_value, p_value))
     for i, txt in enumerate(xy.index):
         ax1.annotate(txt, (x.iloc[i], y.iloc[i]))
-    
-    
+     
+    # If the plot needs to be saved.
     if save:
         save_location = "Clustering"
         try:
@@ -169,19 +183,9 @@ def cluster(df, col1, col2, save=False, remove=None):
         
         fig.savefig("{}/{}.png".format(save_location, plot_title), bbox_inches="tight", dpi=200)
     
-    
     return dn
     
-    
-    
-    
-    
-    
-    
-    
-    
+       
     
 if __name__ == "__main__":
-    main()
-    
-    
+    main()   
